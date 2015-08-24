@@ -1,0 +1,4 @@
+include LICENSE
+include README.rst
+recursive-include pbsdailyqa/static *
+recursive-include pbsdailyqa/templates *
