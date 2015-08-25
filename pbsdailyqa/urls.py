@@ -19,7 +19,7 @@ urlpatterns = patterns(
     # url(r'^', 'pbsdailyqa.views.index'),
     '',
     url(r"^$", views.PBSDailyQAReview.as_view(),
-        name="review_all"),
+        name="pbsdailyqa"),
     url(r"^testlistinstance/$",
         views.get_testlistinstancelist,
         name="testlistinstancelist"),
