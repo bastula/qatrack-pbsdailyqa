@@ -79,7 +79,7 @@ def get_value_from_request(request, param, default, dtype=int):
 
 
 def get_plot(request):
-    """Return a SVG plot of the requested PBS Daily QA data."""
+    """Return a PNG plot of the requested PBS Daily QA data."""
 
     # Get the primary key for the test instance and obtain the filenames
     pk = get_value_from_request(request, 'id', 0)
