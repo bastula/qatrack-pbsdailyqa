@@ -12,6 +12,7 @@ from math import sqrt, log
 from matplotlib.figure import Figure
 from scipy.interpolate import interp1d
 from matplotlib.patches import Circle, Ellipse
+from mpl_toolkits.axes_grid1 import ImageGrid
 
 
 def fwhmpos(halfmax, maxarray, ascending=True):
@@ -331,7 +332,17 @@ def plot_data(spotdata, plot_type='profile', annotations='position', axis='x'):
             for i in range(4):
                 for j in range(4):
                     xs = np.array(spots[k].index, dtype=np.float32)
-                    ax = f.add_subplot(4, 4, k + 1)
+                    if (j == 0):
+                        ax = f.add_subplot(4, 4, k + 1)
+                        axy0 = ax
+                    else:
+                        # Share the y axis from the left most plot
+                        ax = f.add_subplot(4, 4, k + 1, sharey=axy0)
+                        [tk.label1.set_visible(False) for
+                         tk in ax.yaxis.get_major_ticks()]
+                    if (k < 12):
+                        [tk.label1.set_visible(False) for
+                         tk in ax.xaxis.get_major_ticks()]
                     ax.plot(xs, spots[k])
                     if axis == 'y':
                         actpos = ActualPositionY[k]
@@ -381,10 +392,11 @@ def plot_data(spotdata, plot_type='profile', annotations='position', axis='x'):
                     for n in range(len(xticks)):
                         if n != 0 and n != 1:
                             xticks[-n].label1.set_visible(False)
+                    yticks0 = axy0.yaxis.get_major_ticks()
                     yticks = ax.yaxis.get_major_ticks()
                     for n in range(len(yticks)):
                         if n != 0 and n != 1:
-                            yticks[-n].label1.set_visible(False)
+                            yticks0[-n].label1.set_visible(False)
                     ax.set_title(
                         axis + '(' + str(ActualPositionY[k])
                         + ',' + str(ActualPositionX[k]) + ', R' +
@@ -399,7 +411,17 @@ def plot_data(spotdata, plot_type='profile', annotations='position', axis='x'):
             for i in range(4):
                 for j in range(4):
                     xs = np.array(spots[k].index, dtype=np.float32)
-                    ax = f.add_subplot(4, 4, k + 1)
+                    if (j == 0):
+                        ax = f.add_subplot(4, 4, k + 1)
+                        axy0 = ax
+                    else:
+                        # Share the y axis from the left most plot
+                        ax = f.add_subplot(4, 4, k + 1, sharey=axy0)
+                        [tk.label1.set_visible(False) for
+                         tk in ax.yaxis.get_major_ticks()]
+                    if (k < 12):
+                        [tk.label1.set_visible(False) for
+                         tk in ax.xaxis.get_major_ticks()]
                     ax.plot(xs, spots[k])
                     if axis == 'y':
                         actsize = ActualFWHMY[k] / 20
@@ -410,10 +432,6 @@ def plot_data(spotdata, plot_type='profile', annotations='position', axis='x'):
                         actpos = ActualPositionX[k]
                         pos = positionX[k]
                     fwhm = fwhmpos(Halfmax[k], spots[k])
-#                    ax.axvline(x = fwhm, linewidth = 2, \
-#                    color = 'r', ls = ':')
-#                    ax.axvline(x = (2 * actpos - fwhm), \
-#                    linewidth = 2, color = 'r', ls = ':')
                     ax.plot(
                         [fwhm, fwhm], [0, Halfmax[k]],
                         color='red', linewidth=2, ls='dashed')
@@ -461,10 +479,11 @@ def plot_data(spotdata, plot_type='profile', annotations='position', axis='x'):
                     for n in range(len(xticks)):
                         if n != 0 and n != 1:
                             xticks[-n].label1.set_visible(False)
+                    yticks0 = axy0.yaxis.get_major_ticks()
                     yticks = ax.yaxis.get_major_ticks()
                     for n in range(len(yticks)):
                         if n != 0 and n != 1:
-                            yticks[-n].label1.set_visible(False)
+                            yticks0[-n].label1.set_visible(False)
                     if axis == 'y':
                         ax.set_title(
                             axis + '(' + str(ActualPositionY[k])
@@ -483,72 +502,80 @@ def plot_data(spotdata, plot_type='profile', annotations='position', axis='x'):
     elif plot_type == 'spot':
         if annotations == 'position':
             # f, axarr = plt.subplots(4,4)
+            ax = ImageGrid(
+                f, 111, nrows_ncols=(4, 4),
+                axes_pad=0.3,
+                cbar_mode='single')
             k = 0
             for i in range(4):
                 for j in range(4):
-                    ax = f.add_subplot(4, 4, k + 1)
+                    # ax = f.add_subplot(4, 4, k + 1)
                     ys = np.array(spots[k].index, dtype=np.float32)
                     xs = np.array(spots[k].columns, dtype=np.float32)
-                    ax.imshow(
+                    spot = ax[k].imshow(
                         spots[k], aspect='equal',
-                        extent=(xs[0], xs[-1], ys[-1], ys[0]), cmap='jet')
+                        extent=(xs[0], xs[-1], ys[-1], ys[0]), cmap='jet',
+                        vmin=0)
+                    ax.cbar_axes[0].colorbar(spot)
                     circle_tol = Circle(
                         (ActualPositionX[k], ActualPositionY[k]), .2,
                         color='white', fill=False, ls='solid', linewidth=1)
-                    ax.add_patch(circle_tol)
+                    ax[k].add_patch(circle_tol)
                     circle_fail = Circle(
                         (ActualPositionX[k], ActualPositionY[k]), .3,
                         color='white', fill=False, ls='solid', linewidth=1)
-                    ax.add_patch(circle_fail)
-                    ax.axvline(
+                    ax[k].add_patch(circle_fail)
+                    ax[k].axvline(
                         x=ActualPositionX[k], linewidth=1,
                         color='white')
-                    ax.axhline(
+                    ax[k].axhline(
                         y=ActualPositionY[k], linewidth=1,
                         color='white')
-                    ax.axvline(
+                    ax[k].axvline(
                         x=positionX[k], linewidth=1,
                         color='black', ls='dashed')
-                    ax.axhline(
+                    ax[k].axhline(
                         y=positionY[k], linewidth=1,
                         color='black', ls='dashed')
-                    xticks = ax.xaxis.get_major_ticks()
+                    xticks = ax[k].xaxis.get_major_ticks()
                     for n in range(len(xticks)):
                         if n != (len(xticks) - 2) and n != 1:
                             xticks[-(n + 1)].label1.set_visible(False)
-                    yticks = ax.yaxis.get_major_ticks()
+                    yticks = ax[k].yaxis.get_major_ticks()
                     for n in range(len(yticks)):
                         if n != (len(yticks) - 2) and n != 1:
                             yticks[-(n + 1)].label1.set_visible(False)
-                    ax.set_title(
-                        'spot' + '(' + str(ActualPositionY[k])
+                    ax[k].set_title(
+                        str(ActualPositionY[k])
                         + ',' + str(ActualPositionX[k]) + ':'
-                        + 'R' + str(ActualEnergy[k]) + ')',
+                        + 'R' + str(ActualEnergy[k]),
                         fontsize=10, color='blue')
                     if k >= 12:
-                        ax.set_xlabel('Millimeters', fontsize=10)
+                        ax[k].set_xlabel('Millimeters', fontsize=10)
+                    if (j == 0):
+                        ax[k].set_ylabel('Millimeters', fontsize=10)
                     k += 1
         elif annotations == 'size':
             # f, axarr = plt.subplots(4,4)
+            ax = ImageGrid(
+                f, 111, nrows_ncols=(4, 4),
+                axes_pad=0.3)
             k = 0
             for i in range(4):
                 for j in range(4):
-                    ax = f.add_subplot(4, 4, k + 1)
+                    # ax = f.add_subplot(4, 4, k + 1)
                     ys = np.array(spots[k].index, dtype=np.float32)
                     xs = np.array(spots[k].columns, dtype=np.float32)
-                    ax.imshow(
-                        (spots[k] >= (Halfmax[k])) * 512,
+                    ax[k].imshow(
+                        (spots[k] >= (Halfmax[k])) * 500,
                         aspect='equal',
                         extent=(xs[0], xs[-1], ys[-1], ys[0]),
-                        cmap='Blues')
-                    # print 'x', Halfmax[k], (Halfmax[k] + Background), \
-                    #     spots[k].values.max(), spots[k].values.min(), \
-                    #     spots[k].values.mean()
+                        cmap='Blues', vmin=0, vmax=800)
                     fwhmpos(Halfmax[k], x[k], ascending=False), \
                         positionX[k] - sigmaX[k] / 10, positionX[k] + sigmaX[k] / 10, \
                         positionY[k], positionY[k]
                     # Plot FWHM X
-                    ax.plot(
+                    ax[k].plot(
                         [fwhmpos(Halfmax[k], x[k]),
                          fwhmpos(Halfmax[k], x[k], ascending=False)],
                         [positionY[k], positionY[k]],
@@ -566,7 +593,7 @@ def plot_data(spotdata, plot_type='profile', annotations='position', axis='x'):
                     #     [positionY[k], positionY[k]],
                     #     color='green', linewidth=1)
                     # Plot FWHM Y
-                    ax.plot(
+                    ax[k].plot(
                         [positionX[k], positionX[k]],
                         [fwhmpos(Halfmax[k], y[k]),
                          fwhmpos(Halfmax[k], y[k], ascending=False)],
@@ -589,28 +616,30 @@ def plot_data(spotdata, plot_type='profile', annotations='position', axis='x'):
                         width=2 * (sigmaX[k] / 10) * 1.1,
                         height=2 * (sigmaY[k] / 10) * 1.1, color='orange',
                         fill=False, ls='solid', linewidth=1)
-                    ax.add_patch(ellipse_tol)
+                    ax[k].add_patch(ellipse_tol)
                     ellipse_fail = Ellipse(
                         (positionX[k], positionY[k]),
                         width=2 * (sigmaX[k] / 10) * 1.2,
                         height=2 * (sigmaY[k] / 10) * 1.2, color='red',
                         fill=False, ls='solid', linewidth=1)
-                    ax.add_patch(ellipse_fail)
-                    xticks = ax.xaxis.get_major_ticks()
+                    ax[k].add_patch(ellipse_fail)
+                    xticks = ax[k].xaxis.get_major_ticks()
                     for n in range(len(xticks)):
                         if n != (len(xticks) - 2) and n != 1:
                             xticks[-(n + 1)].label1.set_visible(False)
-                    yticks = ax.yaxis.get_major_ticks()
+                    yticks = ax[k].yaxis.get_major_ticks()
                     for n in range(len(yticks)):
                         if n != (len(yticks) - 2) and n != 1:
                             yticks[-(n + 1)].label1.set_visible(False)
-                    ax.set_title(
-                        'spot' + '(' + str(ActualPositionY[k])
+                    ax[k].set_title(
+                        str(ActualPositionY[k])
                         + ',' + str(ActualPositionX[k]) + ',' +
                         'Y:' + str("%.3g" % ActualSigmaY[k]) + ',' + 'X:'
-                        + str("%.3g" % ActualSigmaX[k]) + ')',
+                        + str("%.3g" % ActualSigmaX[k]),
                         fontsize=10, color='blue')
                     if k >= 12:
-                        ax.set_xlabel('Millimeters', fontsize=10)
+                        ax[k].set_xlabel('Millimeters', fontsize=10)
+                    if (j == 0):
+                        ax[k].set_ylabel('Millimeters', fontsize=10)
                     k += 1
     return f
