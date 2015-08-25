@@ -31,10 +31,6 @@
                                         <option value="spot">Spot</option>
                                     </select>
                                 </label>
-                            </div>
-                        </div>
-                        <div id="plot-annotation-options" class="row-fluid">
-                            <div class="span12">
                                 <label class="control-label" for="annotations">
                                     Style:
                                     <select id="annotations" class="inline input-medium plot-options">
@@ -42,10 +38,6 @@
                                         <option value="size">Size</option>
                                     </select>
                                 </label>
-                            </div>
-                        </div>
-                        <div id="plot-profile-options" class="row-fluid">
-                            <div class="span12">
                                 <label class="control-label" for="profile-axis">
                                     Axis:
                                     <select id="profile-axis" class="inline input-medium plot-options">
@@ -66,7 +58,6 @@
                             </div>
                             <button id="datenext" class="btn datenav"><i class="icon-chevron-right"></i></button>
                         </div>
-                        <hr/>
                         <h5>Test Instances <span id="numtestlistinstances" class="badge badge-info"></span></h5>
                         <select id="testlistinstances" class="input-medium plot-options">
                             <option>1</option>
@@ -84,13 +75,11 @@
     <div class="row-fluid">
         <div class="span12">
             <div id="plot-container" class="row-fluid">
-                <div id="plot" class="span12"><img id="plotimg" src="#"></div>
+                <div id="plot" class="span12" align="center"><img id="plotimg" src="#"></div>
             </div>
         </div>
     </div>
-    <div class="row-fluid">
-        <div class="span12">
-            <div id="data-table-wrapper"></div>
-        </div>
-    </div>
 {% endblock %}
+{% block end_body_script_base %}
+    {% block end_body_extra_script %}{%endblock%}
+    {% endblock end_body_script_base%}
