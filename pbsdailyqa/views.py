@@ -36,7 +36,7 @@ def get_testlistinstancelist(request):
     """Return all TestListInstances for the given UnitTestCollection."""
 
     test_list_instances = models.TestListInstance.objects.filter(
-        unit_test_collection=4
+        unit_test_collection__id__in=settings.PBS_DAILY_QA_UTC_IDS
     ).values("id", "work_completed")
 
     datedict = {}
@@ -87,14 +87,19 @@ def get_plot(request):
         test_list_instance_id=pk
     ).values('string_value', 'unit_test_info_id')
 
-    # Return the test list is empty
-    if not len(tests):
+    # Determine the spot filename
+    spotfilename = [t['string_value'] for t in tests
+                    if t['unit_test_info_id'] ==
+                    settings.PBS_DAILY_QA_SPOTFILE_TEST_ID]
+
+    # Return if the test list is empty or the spot filename is invalid
+    if not len(tests) or not len(spotfilename):
         json_context = "No data found for id: " + str(pk)
         return HttpResponse(json_context, content_type=JSON_CONTENT_TYPE)
     else:
         # Initialize the PBS Daily QA analysis with the spot file
-        spotfilename = [t['string_value'] for t in tests][0]
-        spot = os.path.join(settings.UPLOAD_ROOT, str(pk), spotfilename)
+
+        spot = os.path.join(settings.UPLOAD_ROOT, str(pk), spotfilename[0])
         spots, spotdata = analysis.read_file(spot)
 
         # Get the plot parameters from the request
