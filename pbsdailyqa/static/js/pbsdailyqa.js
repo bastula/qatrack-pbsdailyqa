@@ -12,6 +12,13 @@ function parseDate(date) {
 }
 
 /****************************************************/
+function reviewTestList() {
+    "use strict";
+    var url = "/qa/session/review/" + $("#testlistinstances").val();
+    window.open(url);
+}
+
+/****************************************************/
 function loadPlot() {
     "use strict";
     var plotOptions = {
@@ -22,21 +29,9 @@ function loadPlot() {
     if ($("#plot-profile-options").is(":visible")) {
         plotOptions.axis = $("#profile-axis").val();
     }
-    // console.log("plot.png?" + $.param(plotOptions));
     $("#plotimg").attr("src", "plot.png?" + $.param(plotOptions));
-    // $.ajax({
-    //     type:"get",
-    //     url:"plot.png?id=" + $('#testlistinstances').val(),
-    //     contentType:"application/json",
-    //     dataType:"json",
-    //     success: function(result,status,jqXHR){
-    //         $("#plot").html("<image a=>" + result + "</svg>");
-    //     },
-    //     error: function(error){
-    //         if (typeof console != "undefined") {console.log(error)};
-    //     }
-    // });
 }
+
 /****************************************************/
 function loadDates() {
     "use strict";
@@ -45,7 +40,6 @@ function loadDates() {
         // Generate a list of sorted valid dates to select from
         var testlistinstances = $("body").data("testlistinstances").test_list_instances;
         var datelist = Object.keys(testlistinstances).sort();
-        // console.log(datelist);
 
         // Initialize the datepicker
         $(".date").datepicker({
@@ -64,7 +58,6 @@ function loadDates() {
         // Load the selected dates into the Test instance select box
         $(".date").datepicker().on("changeDate", function(e) {
             var date = convertDate(e.date);
-            // console.log(testlistinstances[date].length);
             $("#testlistinstances").empty();
             $.each(testlistinstances[date], function(key, value) {
                 $("#testlistinstances")
@@ -88,13 +81,11 @@ function loadDates() {
             $(".datenav").click(function() {
                 var currdate = datelist.indexOf($("#date").val());
                 var date = currdate;
-                // console.log(currdate, this.id);
                 if ((this.id === "dateprev") && (!($(this).hasClass("disabled")))) {
                     date = ((currdate - 1) < 0) ? currdate : (currdate - 1);
                 } else if ((this.id === "datenext") && (!($(this).hasClass("disabled")))) {
                     date = ((currdate + 1) >= datelist.length) ? currdate : (currdate + 1);
                 }
-                // console.log(this.id, currdate, datelist[currdate], date, datelist[date], $("#date").val());
                 $(".date").datepicker("setUTCDate", parseDate(datelist[date]));
 
             });
@@ -145,6 +136,7 @@ $(document).ready(function() {
     $(".plot-options").change(loadPlot);
 
     $("#gen-plot").click(loadPlot);
+    $("#review-test-list").click(reviewTestList);
 
 
     setPlotOptions();
