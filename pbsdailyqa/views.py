@@ -5,9 +5,11 @@ from django.http import HttpResponse
 
 from qatrack.qa.views.charts import ChartView
 from qatrack.qa import models
+from qatrack.units import models as unitmodels
 
 import os
 import json
+from collections import defaultdict
 
 from tzlocal import get_localzone
 dtformat = "%Y-%m-%d"
@@ -30,6 +32,42 @@ class PBSDailyQAReview(ChartView):
 
     def get_page_title(self):
         return "Review PBS Daily QA"
+
+
+def get_unitlist(request):
+    """Return all machines and their UnitTestCollections."""
+
+    # Get the UTCs and their respective unit ids
+    unitlist = models.UnitTestCollection.objects.filter(
+        pk__in=settings.PBS_DAILY_QA_UTC_IDS).values_list("unit_id", "id")
+    units = defaultdict(list)
+
+    # Create a mapping of units to UTCs
+    for k, v in unitlist:
+        units[k].append(v)
+    units = dict(units)
+
+    # Get the name of each unit
+    unitnames = dict(unitmodels.Unit.objects.filter(
+        pk__in=units.keys()).values_list("id", "name"))
+
+    # Get the mapping for the spot position upload test to the UnitTestInfo id
+    spotposlist = dict(models.UnitTestInfo.objects.filter(
+        test_id__in=[settings.PBS_DAILY_QA_SPOTFILE_TEST_ID],
+        unit_id__in=units.keys()
+    ).values_list("unit_id", "id"))
+    print(spotposlist)
+
+    # Add the additional information to each unit
+    for unit, utc in units.items():
+        units[unit] = {'utc': utc,
+                       'name': unitnames[unit],
+                       'spot_uti': spotposlist[unit]}
+    print(units)
+
+    json_context = json.dumps({'units': units})
+
+    return HttpResponse(json_context, content_type=JSON_CONTENT_TYPE)
 
 
 def get_testlistinstancelist(request):

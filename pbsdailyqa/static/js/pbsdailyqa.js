@@ -117,6 +117,35 @@ function loadTestlistinstances() {
 
 }
 
+/****************************************************/
+function loadUnits() {
+    "use strict";
+    $.ajax({
+        type: "get",
+        url: "units/",
+        contentType: "application/json",
+        dataType: "json",
+        success: function(result) {
+            $("body").data("units", result);
+            $("#units").empty();
+            $.each($("body").data("units").units, function(key, value) {
+                $("#units")
+                    .append($("<option></option>")
+                        .attr("value", key)
+                        .text(value.name));
+            });
+            // Load testlistinstances
+            loadTestlistinstances();
+        },
+        error: function(error) {
+            if (typeof console !== "undefined") {
+                console.log(error);
+            }
+        }
+    });
+
+}
+
 /***************************************************/
 function setPlotOptions() {
     "use strict";
@@ -140,7 +169,7 @@ $(document).ready(function() {
 
 
     setPlotOptions();
-    loadTestlistinstances();
+    loadUnits();
 
     $(this).keydown(function(e) {
         switch (e.which) {
