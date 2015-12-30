@@ -52,18 +52,16 @@ def get_unitlist(request):
         pk__in=units.keys()).values_list("id", "name"))
 
     # Get the mapping for the spot position upload test to the UnitTestInfo id
-    spotposlist = dict(models.UnitTestInfo.objects.filter(
+    spottutilist = dict(models.UnitTestInfo.objects.filter(
         test_id__in=[settings.PBS_DAILY_QA_SPOTFILE_TEST_ID],
         unit_id__in=units.keys()
     ).values_list("unit_id", "id"))
-    print(spotposlist)
 
     # Add the additional information to each unit
     for unit, utc in units.items():
         units[unit] = {'utc': utc,
                        'name': unitnames[unit],
-                       'spot_uti': spotposlist[unit]}
-    print(units)
+                       'spot_uti': spottutilist[unit]}
 
     json_context = json.dumps({'units': units})
 
@@ -73,8 +71,12 @@ def get_unitlist(request):
 def get_testlistinstancelist(request):
     """Return all TestListInstances for the given UnitTestCollection."""
 
+    # Get the UTC ids from the request
+    utclist = request.GET.getlist('id', [])
+    print(utclist)
+
     test_list_instances = models.TestListInstance.objects.filter(
-        unit_test_collection__id__in=settings.PBS_DAILY_QA_UTC_IDS
+        unit_test_collection__id__in=utclist
     ).values("id", "work_completed")
 
     datedict = {}
@@ -125,14 +127,14 @@ def get_plot(request):
         test_list_instance_id=pk
     ).values('string_value', 'unit_test_info_id')
 
+    spot_uti = get_value_from_request(request, 'spot_uti', None)
     # Determine the spot filename
     spotfilename = [t['string_value'] for t in tests
-                    if t['unit_test_info_id'] ==
-                    settings.PBS_DAILY_QA_SPOTFILE_TEST_ID]
+                    if t['unit_test_info_id'] == spot_uti]
 
     # Return if the test list is empty or the spot filename is invalid
     if not len(tests) or not len(spotfilename):
-        json_context = "No data found for id: " + str(pk)
+        json_context = "No data found for id: " + str(pk) + str(tests) + str(spotfilename) + str(spot_uti)
         return HttpResponse(json_context, content_type=JSON_CONTENT_TYPE)
     else:
         # Initialize the PBS Daily QA analysis with the spot file
