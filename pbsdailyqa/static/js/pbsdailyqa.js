@@ -13,13 +13,24 @@ function parseDate(date) {
 
 function testListInstances() {
     "use strict";
-    return $("body").data("testlistinstances").test_list_instances;
+    var testlistinstances = $("body").data("testlistinstances");
+    if (testlistinstances !== undefined) {
+        return testlistinstances.test_list_instances;
+    }
+    else {
+        return {};
+    }
 }
 
 function dateList() {
     // Generate a list of sorted valid dates to select from
     "use strict";
-    return Object.keys(testListInstances()).sort();
+    if ($("body").data("testlistinstances") !== undefined) {
+        return Object.keys(testListInstances()).sort();
+    }
+    else {
+        return [];
+    }
 }
 
 /****************************************************/
@@ -47,27 +58,25 @@ function loadPlot() {
 /****************************************************/
 function loadDates() {
     "use strict";
-    // Check if data exists before loading dates into the datepicker
-    if ($("body").data("testlistinstances") !== undefined) {
-
-        // Initialize the datepicker
-        $(".date").datepicker({
-            format: dateformat,
-            autoclose: true,
-            beforeShowDay: function(date) {
-                if ($.inArray(convertDate(date), dateList()) !== -1) {
-                    return {
-                        classes: "btn-info"
-                    };
-                }
-                return false;
+    // Initialize the datepicker
+    $(".date").datepicker({
+        format: dateformat,
+        autoclose: true,
+        beforeShowDay: function(date) {
+            if ($.inArray(convertDate(date), dateList()) !== -1) {
+                return {
+                    classes: "btn-info"
+                };
             }
-        });
-        // Load the selected dates into the Test instance select box
-        $(".date").datepicker().on("changeDate", function(e) {
-            var date = convertDate(e.date);
-            $("#testlistinstances").empty();
-            console.log(date, testListInstances());
+            return false;
+        }
+    });
+
+    // Load the selected dates into the Test instance select box
+    $(".date").datepicker().on("changeDate", function(e) {
+        var date = convertDate(e.date);
+        $("#testlistinstances").empty();
+        if (date !== "") {
             $.each(testListInstances()[date], function(key, value) {
                 $("#testlistinstances")
                     .append($("<option></option>")
@@ -81,28 +90,20 @@ function loadDates() {
             $("#datenext").prop("disabled", (currdate === (dateList().length - 1)));
             // Load plot
             loadPlot();
-        });
-
-        // Select the most recent date
-        $(".date").datepicker("setDate", dateList()[dateList().length - 1]);
-
-        function setupPrevNextDate() {
-            $(".datenav").click(function() {
-                var currdate = dateList().indexOf($("#date").val());
-                var date = currdate;
-                if ((this.id === "dateprev") && (!($(this).hasClass("disabled")))) {
-                    date = ((currdate - 1) < 0) ? currdate : (currdate - 1);
-                } else if ((this.id === "datenext") && (!($(this).hasClass("disabled")))) {
-                    date = ((currdate + 1) >= dateList().length) ? currdate : (currdate + 1);
-                }
-                $(".date").datepicker("setUTCDate", parseDate(dateList()[date]));
-
-            });
         }
+    });
 
-        // Setup the previous and next buttons
-        setupPrevNextDate();
-    }
+    $(".datenav").click(function() {
+        var currdate = dateList().indexOf($("#date").val());
+        var date = currdate;
+        if ((this.id === "dateprev") && (!($(this).hasClass("disabled")))) {
+            date = ((currdate - 1) < 0) ? currdate : (currdate - 1);
+        } else if ((this.id === "datenext") && (!($(this).hasClass("disabled")))) {
+            date = ((currdate + 1) >= dateList().length) ? currdate : (currdate + 1);
+        }
+        $(".date").datepicker("setUTCDate", parseDate(dateList()[date]));
+
+    });
 }
 
 /****************************************************/
@@ -117,12 +118,15 @@ function loadTestlistinstances() {
         data: {id: utclist},
         traditional: true,
         success: function(result) {
+            // Update the list of testslistinstances
             $("body").data("testlistinstances", result);
-            loadDates();
+            // Select the most recent date
+            $(".date").datepicker("setDate", dateList()[dateList().length - 1]);
         },
         error: function(error) {
             if (typeof console !== "undefined") {
-                console.log(error);
+                $("#plot").text(
+                    "Could not load test lists. Error message: " + error.statusText);
             }
         }
     });
@@ -151,7 +155,8 @@ function loadUnits() {
         },
         error: function(error) {
             if (typeof console !== "undefined") {
-                console.log(error);
+                $("#plot").text(
+                    "Could not load treatment units. Error message: " + error.statusText);
             }
         }
     });
@@ -180,7 +185,7 @@ $(document).ready(function() {
     $("#gen-plot").click(loadPlot);
     $("#review-test-list").click(reviewTestList);
 
-
+    loadDates();
     setPlotOptions();
     loadUnits();
 
