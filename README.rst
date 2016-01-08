@@ -49,3 +49,8 @@ These ID values are specific to your clinic's UTC and test IDs.
 5. Once you are in production, don't forget to copy the static files using::
 
     python manage.py collectstatic
+
+Version History:
+----------------
+* 0.2 - Added support for multiple treatment units
+* 0.1 - Initial Release
