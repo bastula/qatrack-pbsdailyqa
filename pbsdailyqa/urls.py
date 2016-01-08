@@ -30,7 +30,7 @@ urlpatterns = patterns(
         views.get_testlistinstance,
         name="testlistinstance"),
     url(r"^plot.png",
-        # cache_page(60 * 60)(views.get_plot),
-        views.get_plot,
+        cache_page(60 * 60)(views.get_plot),
+        # views.get_plot,
         name="pbsanalysis_plot"),
 )
